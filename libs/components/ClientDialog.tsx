@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Loader2 } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -16,22 +17,14 @@ import {
   FormLabel,
   FormMessage,
 } from './ui/form';
-
-export interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  company: string;
-  status: 'active' | 'inactive' | 'pending';
-  createdAt: string;
-}
+import { Client } from 'libs/interface/Client';
 
 interface ClientDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client?: Client | null;
   onSave: (client: Client) => void;
+  isLoading?: boolean;
 }
 
 const clientSchema = z.object({
@@ -53,7 +46,7 @@ const clientSchema = z.object({
 
 type ClientFormValues = z.infer<typeof clientSchema>;
 
-export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialogProps) {
+export function ClientDialog({ open, onOpenChange, client, onSave, isLoading = false }: ClientDialogProps) {
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
@@ -72,7 +65,7 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
         email: client.email,
         phone: client.phone,
         company: client.company,
-        status: client.status,
+        status: client.status as 'active' | 'inactive' | 'pending',
       });
     } else if (!open) {
       form.reset({
@@ -86,8 +79,10 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
   }, [client, open, form]);
 
   const onSubmit = (data: ClientFormValues) => {
+    const tempId = crypto.randomUUID() ;
+
     const clientData: Client = {
-      id: client?.id || `client-${Date.now()}`,
+      id: client?.id || `client-${tempId}`, 
       name: data.name,
       email: data.email,
       phone: data.phone,
@@ -95,12 +90,17 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
       status: data.status,
       createdAt: client?.createdAt || new Date().toISOString(),
     };
+    
     onSave(clientData);
-    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(val) => {
+        if (!isLoading) onOpenChange(val);
+      }}
+    >
       <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-md">
         <DialogHeader>
           <DialogTitle>{client ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
@@ -116,7 +116,7 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
                   <FormItem>
                     <FormLabel>Nome Completo</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -130,7 +130,7 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
                   <FormItem>
                     <FormLabel>E-mail</FormLabel>
                     <FormControl>
-                      <Input type="email" {...field} />
+                      <Input type="email" {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -144,7 +144,7 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
                   <FormItem>
                     <FormLabel>Telefone</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,7 +158,7 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
                   <FormItem>
                     <FormLabel>Empresa</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -171,7 +171,11 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      disabled={isLoading}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -190,11 +194,27 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
             </div>
             
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                disabled={isLoading}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" className="bg-blue-500 hover:bg-blue-600">
-                {client ? 'Salvar Alterações' : 'Criar Cliente'}
+              <Button 
+                type="submit" 
+                className="bg-blue-500 hover:bg-blue-600 min-w-[140px]"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  client ? 'Salvar Alterações' : 'Criar Cliente'
+                )}
               </Button>
             </DialogFooter>
           </form>
