@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Pencil, Trash2, Eye } from 'lucide-react';
-import { Client } from './ClientDialog';
+import { Client } from 'libs/interface/Client';
 
 interface ClientsTableProps {
   clients: Client[];

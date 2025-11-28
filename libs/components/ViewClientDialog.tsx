@@ -1,9 +1,9 @@
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Client } from './ClientDialog';
 import { Mail, Phone, Building2, Calendar, Activity } from 'lucide-react';
 import { Badge } from './ui/badge';
+import { Client } from 'libs/interface/Client';
 
 interface ViewClientDialogProps {
   open: boolean;
